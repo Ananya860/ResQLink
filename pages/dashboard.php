@@ -33,10 +33,12 @@ elseif ($role_id == 5) $role_name = "System Admin";
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dashboard - ResQLink</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ResQLink</title>
+
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -47,7 +49,7 @@ elseif ($role_id == 5) $role_name = "System Admin";
         }
 
         .card-box {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 60px auto;
             background: #fff;
             border-radius: 14px;
@@ -64,11 +66,16 @@ elseif ($role_id == 5) $role_name = "System Admin";
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
-            height: 100%;
         }
 
-        .btn-area a {
-            min-width: 160px;
+        .side-buttons a {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .logout-center {
+            text-align: center;
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -90,40 +97,47 @@ elseif ($role_id == 5) $role_name = "System Admin";
 
     <hr>
 
-    <div class="row mb-4 g-3">
+    <div class="row">
+        <div class="col-md-8">
 
-        <?php if ($role_id != 2): ?>
-        <div class="col-md-6">
-            <div class="info-box">
-                <h5>Unread Alerts</h5>
-                <h3><?php echo $count; ?></h3>
-            </div>
-        </div>
-        <?php endif; ?>
+            <?php if ($role_id != 2): ?>
+                <div class="info-box mb-3">
+                    <h5>Unread Alerts</h5>
+                    <h3><?php echo $count; ?></h3>
+                </div>
+            <?php endif; ?>
 
-        <div class="col-md-6">
             <div class="info-box">
                 <h5>System Info</h5>
                 <p class="mb-0">
                     <?php if ($role_id == 2): ?>
-                        You can create and manage disaster alerts for all users.
+                        You can manage disaster alerts and shelters for all users.
                     <?php else: ?>
-                        Stay updated with disaster alerts and emergency notifications.
+                        Stay updated with alerts and find nearby shelters.
                     <?php endif; ?>
                 </p>
             </div>
+
         </div>
 
+        <div class="col-md-4">
+            <div class="side-buttons">
+
+                <a href="alerts.php" class="btn btn-warning">View Alert</a>
+
+                <?php if ($role_id == 2): ?>
+                    <a href="admin/create_alert.php" class="btn btn-dark">Create Alert</a>
+                    <a href="admin/manage_shelters.php" class="btn btn-primary">Manage Shelters</a>
+                <?php else: ?>
+                    <a href="shelters.php" class="btn btn-info">View Shelters</a>
+                <?php endif; ?>
+
+            </div>
+        </div>
     </div>
 
-    <div class="btn-area d-flex flex-wrap gap-3">
-        <a href="alerts.php" class="btn btn-warning">View Alert</a>
-
-        <?php if ($role_id == 2): ?>
-            <a href="admin/create_alert.php" class="btn btn-dark">Create Alert</a>
-        <?php endif; ?>
-
-        <a href="logout.php" class="btn btn-danger">Logout</a>
+    <div class="logout-center">
+        <a href="logout.php" class="btn btn-danger px-5">Logout</a>
     </div>
 
 </div>
