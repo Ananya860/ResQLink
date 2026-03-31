@@ -6,7 +6,9 @@ $login_input = trim($_POST['login_input'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if ($login_input === '' || $password === '') {
-    die("Please fill all fields. <br><a href='login.php'>Go Back</a>");
+    $_SESSION['error'] = "Please fill all fields.";
+    header("Location: login.php");
+    exit;
 }
 
 $stmt = $conn->prepare("SELECT id, role_id, full_name, email, phone, password_hash FROM users WHERE email = ? OR phone = ? LIMIT 1");
@@ -25,10 +27,14 @@ if ($result->num_rows === 1) {
         header("Location: dashboard.php");
         exit;
     } else {
-        echo "Incorrect password. <br><a href='login.php'>Try Again</a>";
+        $_SESSION['error'] = "Incorrect password.";
+        header("Location: login.php");
+        exit;
     }
 } else {
-    echo "User not found. <br><a href='login.php'>Try Again</a>";
+    $_SESSION['error'] = "User not found.";
+    header("Location: login.php");
+    exit;
 }
 
 $stmt->close();
