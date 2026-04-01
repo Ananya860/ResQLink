@@ -33,18 +33,16 @@ elseif ($role_id == 5) $role_name = "System Admin";
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - ResQLink</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="../css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
         body {
-            background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+            background: linear-gradient(135deg, #dc3545, #bb2d3b);
             min-height: 100vh;
         }
 
@@ -68,7 +66,7 @@ elseif ($role_id == 5) $role_name = "System Admin";
             border-radius: 10px;
         }
 
-        .side-buttons a {
+        .admin-buttons a {
             width: 100%;
             margin-bottom: 10px;
         }
@@ -82,63 +80,78 @@ elseif ($role_id == 5) $role_name = "System Admin";
 
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+<nav class="navbar navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="../index.php">
-            <span class="badge bg-danger">ResQLink</span>
-        </a>
+        <a class="navbar-brand" href="../index.php">ResQLink</a>
     </div>
 </nav>
 
 <div class="card-box">
 
-    <h2 class="title">Welcome, <?php echo htmlspecialchars($full_name); ?></h2>
-    <p>You are logged in as <b><?php echo htmlspecialchars($role_name); ?></b></p>
+<h2 class="title">Welcome, <?php echo htmlspecialchars($full_name); ?></h2>
+<p>You are logged in as <b><?php echo $role_name; ?></b></p>
 
-    <hr>
+<hr>
 
-    <div class="row">
-        <div class="col-md-8">
+<div class="row">
 
-            <?php if ($role_id != 2): ?>
-                <div class="info-box mb-3">
-                    <h5>Unread Alerts</h5>
-                    <h3><?php echo $count; ?></h3>
-                </div>
-            <?php endif; ?>
+    <!-- LEFT SIDE -->
+    <div class="col-md-8">
 
-            <div class="info-box">
-                <h5>System Info</h5>
-                <p class="mb-0">
-                    <?php if ($role_id == 2): ?>
-                        You can manage disaster alerts and shelters for all users.
-                    <?php else: ?>
-                        Stay updated with alerts and find nearby shelters.
-                    <?php endif; ?>
-                </p>
-            </div>
-
+        <?php if ($role_id != 2): ?>
+        <div class="info-box mb-3">
+            <h5>Unread Alerts</h5>
+            <h3><?php echo $count; ?></h3>
         </div>
+        <?php endif; ?>
 
-        <div class="col-md-4">
-            <div class="side-buttons">
-
-                <a href="alerts.php" class="btn btn-warning">View Alert</a>
-
+        <div class="info-box">
+            <h5>System Info</h5>
+            <p>
                 <?php if ($role_id == 2): ?>
-                    <a href="admin/create_alert.php" class="btn btn-dark">Create Alert</a>
-                    <a href="admin/manage_shelters.php" class="btn btn-primary">Manage Shelters</a>
+                    You can manage alerts and shelters.
                 <?php else: ?>
-                    <a href="shelters.php" class="btn btn-info">View Shelters</a>
+                    Stay updated with alerts and find shelters.
                 <?php endif; ?>
-
-            </div>
+            </p>
         </div>
+
     </div>
 
-    <div class="logout-center">
-        <a href="logout.php" class="btn btn-danger px-5">Logout</a>
+    <!-- RIGHT SIDE -->
+    <div class="col-md-4">
+
+        <?php if ($role_id == 2): ?>
+        <!-- ADMIN BUTTONS -->
+        <div class="admin-buttons">
+
+            <a href="alerts.php" class="btn btn-warning">View Alert</a>
+
+            <a href="admin/create_alert.php" class="btn btn-dark">Create Alert</a>
+
+            <a href="admin/manage_shelters.php" class="btn btn-primary">Manage Shelters</a>
+
+        </div>
+
+        <?php else: ?>
+        <!-- USER BUTTONS -->
+        <div class="d-flex flex-wrap gap-2">
+
+            <a href="alerts.php" class="btn btn-warning">View Alert</a>
+
+            <a href="shelters.php" class="btn btn-info">View Shelters</a>
+
+        </div>
+        <?php endif; ?>
+
     </div>
+
+</div>
+
+<!-- ✅ LOGOUT CENTER BOTTOM -->
+<div class="logout-center">
+    <a href="logout.php" class="btn btn-danger px-5">Logout</a>
+</div>
 
 </div>
 
