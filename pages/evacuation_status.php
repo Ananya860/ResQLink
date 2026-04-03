@@ -11,7 +11,7 @@ $user_id = (int) $_SESSION['user_id'];
 $success = "";
 $error = "";
 
-// Get shelters
+// shelters for dropdown
 $shelters = $conn->query("
     SELECT id, shelter_name, address, city, total_capacity, current_occupancy, status
     FROM shelters
@@ -19,9 +19,9 @@ $shelters = $conn->query("
     ORDER BY shelter_name ASC
 ");
 
-// Get latest status of current user
+// latest status for this user
 $currentStatus = null;
-$stmtCurrent = $conn->prepare("
+$stmt = $conn->prepare("
     SELECT es.*, s.shelter_name, s.address, s.city
     FROM evacuation_status es
     LEFT JOIN shelters s ON es.shelter_id = s.id
@@ -29,44 +29,44 @@ $stmtCurrent = $conn->prepare("
     ORDER BY es.id DESC
     LIMIT 1
 ");
-$stmtCurrent->bind_param("i", $user_id);
-$stmtCurrent->execute();
-$resCurrent = $stmtCurrent->get_result();
-if ($resCurrent && $resCurrent->num_rows > 0) {
-    $currentStatus = $resCurrent->fetch_assoc();
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
+if ($res && $res->num_rows > 0) {
+    $currentStatus = $res->fetch_assoc();
 }
-$stmtCurrent->close();
+$stmt->close();
 
-// Save new status
+// submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = trim($_POST['status'] ?? '');
     $notes = trim($_POST['notes'] ?? '');
     $shelter_id = $_POST['shelter_id'] ?? '';
 
-    $allowedStatuses = ['safe', 'evacuated', 'need_help'];
+    $allowed = ['safe', 'evacuated', 'need_help'];
 
-    if (!in_array($status, $allowedStatuses, true)) {
+    if (!in_array($status, $allowed, true)) {
         $error = "Please select a valid status.";
     } elseif ($status === 'evacuated' && $shelter_id === '') {
-        $error = "Please select a shelter when status is Evacuated.";
+        $error = "Please select a shelter if you are evacuated.";
     } else {
         $shelter_value = ($shelter_id === '') ? null : (int)$shelter_id;
 
-        $stmtInsert = $conn->prepare("
+        $insert = $conn->prepare("
             INSERT INTO evacuation_status (user_id, status, shelter_id, notes, updated_at)
             VALUES (?, ?, ?, ?, NOW())
         ");
-        $stmtInsert->bind_param("isis", $user_id, $status, $shelter_value, $notes);
+        $insert->bind_param("isis", $user_id, $status, $shelter_value, $notes);
 
-        if ($stmtInsert->execute()) {
+        if ($insert->execute()) {
             $success = "Evacuation status saved successfully.";
         } else {
             $error = "Failed to save evacuation status.";
         }
-        $stmtInsert->close();
+        $insert->close();
 
-        // Reload latest status
-        $stmtCurrent = $conn->prepare("
+        // reload latest
+        $stmt = $conn->prepare("
             SELECT es.*, s.shelter_name, s.address, s.city
             FROM evacuation_status es
             LEFT JOIN shelters s ON es.shelter_id = s.id
@@ -74,13 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ORDER BY es.id DESC
             LIMIT 1
         ");
-        $stmtCurrent->bind_param("i", $user_id);
-        $stmtCurrent->execute();
-        $resCurrent = $stmtCurrent->get_result();
-        if ($resCurrent && $resCurrent->num_rows > 0) {
-            $currentStatus = $resCurrent->fetch_assoc();
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            $currentStatus = $res->fetch_assoc();
         }
-        $stmtCurrent->close();
+        $stmt->close();
     }
 }
 ?>
@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <div class="page-card">
         <h2 class="page-title">Evacuation Status Tracking</h2>
-        <p class="text-muted">Update your current condition during an emergency.</p>
+        <p class="text-muted">Update your current situation during an emergency.</p>
 
         <?php if ($success): ?>
             <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>

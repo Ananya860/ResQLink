@@ -54,7 +54,6 @@ if (!empty($params)) {
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Summary of latest records
 $summary = [
     'safe' => 0,
     'evacuated' => 0,

@@ -82,17 +82,67 @@ elseif ($role_id == 5) $role_name = "System Admin";
 
 <body>
 
-<div class="container mt-5">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="../index.php">
+            <span class="badge bg-danger">ResQLink</span>
+        </a>
+    </div>
+</nav>
 
-<div class="card shadow p-4">
+<div class="card-box">
 
-<h2>Welcome <?php echo htmlspecialchars($full_name); ?></h2>
+    <h2 class="title">Welcome, <?php echo htmlspecialchars($full_name); ?></h2>
+    <p>You are logged in as <b><?php echo htmlspecialchars($role_name); ?></b></p>
 
-<p>You are logged in successfully.</p>
+    <hr>
 
-<a href="logout.php" class="btn btn-danger">Logout</a>
+    <div class="row">
+        <div class="col-md-8">
 
-</div>
+            <?php if ($role_id != 2): ?>
+                <div class="info-box mb-3">
+                    <h5>Unread Alerts</h5>
+                    <h3><?php echo $count; ?></h3>
+                </div>
+            <?php endif; ?>
+
+            <div class="info-box">
+                <h5>System Info</h5>
+                <p class="mb-0">
+                    <?php if ($role_id == 2): ?>
+                        You can manage disaster alerts, shelters, resources, and evacuation tracking.
+                    <?php else: ?>
+                        Stay updated with alerts, find nearby shelters, and update your evacuation status.
+                    <?php endif; ?>
+                </p>
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+            <div class="side-buttons">
+
+                <a href="alerts.php" class="btn btn-warning">View Alert</a>
+
+                <?php if ($role_id == 2): ?>
+                    <a href="admin/create_alert.php" class="btn btn-dark">Create Alert</a>
+                    <a href="admin/manage_shelters.php" class="btn btn-primary">Manage Shelters</a>
+                    <a href="admin/manage_resources.php" class="btn btn-info text-white">Manage Resources</a>
+                    <a href="admin/manage_evacuation.php" class="btn btn-secondary">Manage Evacuation</a>
+                <?php else: ?>
+                    <a href="shelters.php" class="btn btn-info">View Shelters</a>
+                    <a href="resources.php" class="btn btn-primary">Resources</a>
+                    <a href="evacuation_status.php" class="btn btn-success">Update Evacuation</a>
+                <?php endif; ?>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="logout-center">
+        <a href="logout.php" class="btn btn-danger px-5">Logout</a>
+    </div>
 
 </div>
 
