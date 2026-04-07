@@ -12,6 +12,10 @@ if ($_SESSION['role_id'] != 2) {
 }
 
 $msg = "";
+ 
+echo "<pre>";
+print_r($_POST); 
+echo "</pre>";
 
 // INSERT RESOURCE
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
