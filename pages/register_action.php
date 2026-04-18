@@ -1,9 +1,14 @@
 <?php
 require_once __DIR__ . "/../DB/db.php";
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: register.php");
+    exit;
+}
+
 $first_name = trim($_POST['first_name'] ?? '');
 $last_name = trim($_POST['last_name'] ?? '');
-$full_name = $first_name . ' ' . $last_name;
+$full_name = trim($first_name . ' ' . $last_name);
 
 $email = trim($_POST['email'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
@@ -12,7 +17,7 @@ $role_id = (int)($_POST['role_id'] ?? 0);
 $password = $_POST['password'] ?? '';
 $confirm_password = $_POST['confirm_password'] ?? '';
 
-if ($first_name === '' || $last_name === '' || $email === '' || $phone === '' || $password === '' || $role_id === 0) {
+if ($first_name === '' || $last_name === '' || $email === '' || $phone === '' || $password === '' || $confirm_password === '' || $role_id === 0) {
     die("Please fill all required fields. <br><a href='register.php'>Go Back</a>");
 }
 
@@ -31,11 +36,16 @@ if ($result->num_rows > 0) {
 
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
+/*
+    This matches your current users table usage from the existing file:
+    columns used: role_id, full_name, phone, email, password_hash
+*/
 $stmt = $conn->prepare("INSERT INTO users (role_id, full_name, phone, email, password_hash) VALUES (?, ?, ?, ?, ?)");
 $stmt->bind_param("issss", $role_id, $full_name, $phone, $email, $password_hash);
 
 if ($stmt->execute()) {
-    echo "Registration Successful! <br><a href='register.php'>Register Another User</a>";
+    header("Location: login.php?registered=success");
+    exit;
 } else {
     echo "Registration Failed: " . $conn->error;
 }
