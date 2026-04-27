@@ -133,6 +133,7 @@ if ($role === 'admin' || $role === 'system_admin') {
     $stats['requests']  = getSingleValue($conn, "SELECT COUNT(*) FROM emergency_requests WHERE status='pending'");
     $stats['users']     = getSingleValue($conn, "SELECT COUNT(*) FROM users WHERE is_active=1");
     $stats['evacuated'] = getSingleValue($conn, "SELECT COUNT(*) FROM evacuation_status WHERE status='evacuated'");
+    $stats['teams']     = getSingleValue($conn, "SELECT COUNT(*) FROM rescue_teams");
 
     $recent_alerts = getRows($conn, "
         SELECT alert_type, severity, location_text, published_at
@@ -160,7 +161,7 @@ if ($role === 'admin' || $role === 'system_admin') {
 
     $my_missions = getPreparedRows(
         $conn,
-        "SELECT rm.mission_status, er.request_type, er.address, er.priority
+        "SELECT rm.id as mission_id, rm.mission_status, er.request_type, er.address, er.priority
          FROM rescue_missions rm
          JOIN emergency_requests er ON rm.request_id = er.id
          WHERE rm.team_user_id = ?
@@ -169,6 +170,15 @@ if ($role === 'admin' || $role === 'system_admin') {
         "i",
         $user_id
     );
+
+    // Fetch team info
+    $my_team = getPreparedRows(
+        $conn,
+        "SELECT * FROM rescue_teams WHERE members LIKE ? LIMIT 1",
+        "s",
+        "%$username%"
+    );
+    $my_team = !empty($my_team) ? $my_team[0] : null;
 
 } else {
 
@@ -254,7 +264,7 @@ function missionColor($s) {
     --accent-lt:  #ffebee;
     --sidebar-w:  265px;
     --topbar-h:   66px;
-    --bg:         #f0f2f5;
+    --bg:         #ffc0cb;
     --white:      #ffffff;
     --text:       #1a1a2e;
     --muted:      #6b7280;
@@ -521,6 +531,9 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
             <a href="admin/manage_evacuation.php" class="nav-link">
                 <i class="fa-solid fa-person-walking-arrow-right"></i> Manage Evacuation
             </a>
+            <a href="admin/rescue_team.php" class="nav-link">
+                <i class="fa-solid fa-truck-medical"></i> Rescue Teams
+            </a>
 
         <?php elseif ($role === 'rescue_team'): ?>
 
@@ -529,8 +542,8 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
                 <i class="fa-solid fa-bell"></i> Active Alerts
                 <?php if (($stats['alerts'] ?? 0) > 0): ?><span class="badge"><?= $stats['alerts'] ?></span><?php endif; ?>
             </a>
-            <a href="#" class="nav-link">
-                <i class="fa-solid fa-person-rifle"></i> My Missions
+            <a href="view_tasks.php" class="nav-link">
+                <i class="fa-solid fa-clipboard-list"></i> Assigned Tasks
                 <?php if (($stats['my_missions'] ?? 0) > 0): ?><span class="badge"><?= $stats['my_missions'] ?></span><?php endif; ?>
             </a>
             <a href="#" class="nav-link">
@@ -667,6 +680,10 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
                 <div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fa-solid fa-person-walking-arrow-right"></i></div>
                 <div class="stat-info"><p>Evacuated</p><h3><?= $stats['evacuated'] ?? 0 ?></h3></div>
             </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f1f8e9;color:#558b2f;"><i class="fa-solid fa-truck-medical"></i></div>
+                <div class="stat-info"><p>Rescue Teams</p><h3><?= $stats['teams'] ?? 0 ?></h3></div>
+            </div>
         </div>
 
         <div class="section-hd"><h2>Quick Actions</h2></div>
@@ -685,6 +702,12 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
             </a>
             <a href="admin/manage_evacuation.php" class="action-card">
                 <div class="ac-icon" style="background:#558B2F;"><i class="fa-solid fa-person-walking-arrow-right"></i></div><span>Manage Evacuation</span>
+            </a>
+            <a href="admin/rescue_team.php" class="action-card">
+                <div class="ac-icon" style="background:#2e7d32;"><i class="fa-solid fa-truck-medical"></i></div><span>Rescue Teams</span>
+            </a>
+            <a href="admin/assign_mission.php" class="action-card">
+                <div class="ac-icon" style="background:#1565C0;"><i class="fa-solid fa-clipboard-check"></i></div><span>Assign Missions</span>
             </a>
         </div>
 
@@ -741,8 +764,8 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
             <a href="alerts.php" class="action-card">
                 <div class="ac-icon" style="background:#c62828;"><i class="fa-solid fa-bell"></i></div><span>Active Alerts</span>
             </a>
-            <a href="#" class="action-card">
-                <div class="ac-icon" style="background:#1565C0;"><i class="fa-solid fa-person-rifle"></i></div><span>My Missions</span>
+            <a href="view_tasks.php" class="action-card">
+                <div class="ac-icon" style="background:#1565C0;"><i class="fa-solid fa-clipboard-list"></i></div><span>Assigned Tasks</span>
             </a>
             <a href="#" class="action-card">
                 <div class="ac-icon" style="background:#e65100;"><i class="fa-solid fa-triangle-exclamation"></i></div><span>View Requests</span>
@@ -753,56 +776,43 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
             <a href="resources.php" class="action-card">
                 <div class="ac-icon" style="background:#558B2F;"><i class="fa-solid fa-boxes-stacked"></i></div><span>Resources</span>
             </a>
+            <a href="team_details.php" class="action-card">
+                <div class="ac-icon" style="background:#6a1b9a;"><i class="fa-solid fa-people-group"></i></div><span>My Team</span>
+            </a>
         </div>
 
         <div class="two-col">
             <div>
-                <div class="section-hd"><h2>My Recent Missions</h2></div>
+                <div class="section-hd"><h2>My Assigned Tasks</h2></div>
                 <div class="table-card">
                     <table>
-                        <thead><tr><th>Request Type</th><th>Priority</th><th>Status</th></tr></thead>
+                        <thead><tr><th>Request</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody>
                             <?php if (!empty($my_missions)): foreach ($my_missions as $m): ?>
                             <tr>
                                 <td><?= htmlspecialchars(ucfirst($m['request_type'])) ?></td>
                                 <td><span class="pill" style="background:<?= severityColor($m['priority']) ?>"><?= ucfirst($m['priority']) ?></span></td>
                                 <td><span class="pill" style="background:<?= missionColor($m['mission_status']) ?>"><?= ucwords(str_replace('_',' ',$m['mission_status'])) ?></span></td>
+                                <td><a href="view_task.php?id=<?= $m['mission_id'] ?>" class="see-all" style="font-size:11px">View</a></td>
                             </tr>
                             <?php endforeach; else: ?>
-                                <tr class="empty-row"><td colspan="3">No missions assigned yet.</td></tr>
+                                <tr class="empty-row"><td colspan="4">No tasks assigned yet.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div>
-                <div class="section-hd">
-                    <h2>Active Alerts</h2>
-                    <a href="alerts.php" class="see-all">See all <i class="fa-solid fa-arrow-right"></i></a>
-                </div>
-                <div class="table-card">
-                    <table>
-                        <thead><tr><th>Type</th><th>Location</th><th>Severity</th></tr></thead>
-                        <tbody>
-                            <?php
-                            $ar = getRows($conn, "
-                                SELECT alert_type, severity, location_text
-                                FROM disaster_alerts
-                                WHERE status='published'
-                                ORDER BY published_at DESC
-                                LIMIT 5
-                            ");
-                            if (!empty($ar)): foreach ($ar as $a): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($a['alert_type']) ?></td>
-                                <td><?= htmlspecialchars($a['location_text']) ?></td>
-                                <td><span class="pill" style="background:<?= severityColor($a['severity']) ?>"><?= ucfirst($a['severity']) ?></span></td>
-                            </tr>
-                            <?php endforeach; else: ?>
-                                <tr class="empty-row"><td colspan="3">No active alerts.</td></tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                <div class="section-hd"><h2>My Team Information</h2></div>
+                <div class="table-card" style="padding:20px;">
+                    <?php if ($my_team): ?>
+                        <h3 style="font-size:18px;color:var(--accent);margin-bottom:10px;"><?= htmlspecialchars($my_team['team_name']) ?></h3>
+                        <p style="font-size:13px;margin-bottom:8px;"><strong>Members:</strong> <?= htmlspecialchars($my_team['members']) ?></p>
+                        <p style="font-size:13px;margin-bottom:8px;"><strong>Assigned Area:</strong> <?= htmlspecialchars($my_team['assigned_area']) ?></p>
+                        <p style="font-size:13px;"><strong>Status:</strong> <span class="pill" style="background:<?= $my_team['status']=='available' ? '#2e7d32' : ($my_team['status']=='on_mission' ? '#f9a825' : '#6b7280') ?>"><?= ucfirst(str_replace('_',' ',$my_team['status'])) ?></span></p>
+                    <?php else: ?>
+                        <p style="color:var(--muted);font-style:italic;">No team information found for you.</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

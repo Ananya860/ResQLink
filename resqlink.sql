@@ -172,6 +172,22 @@ CREATE TABLE `rescue_missions` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `rescue_teams`
+--
+
+CREATE TABLE `rescue_teams` (
+  `id` int(11) NOT NULL,
+  `team_name` varchar(100) NOT NULL,
+  `members` text NOT NULL,
+  `assigned_area` varchar(150) NOT NULL,
+  `status` enum('available','on_mission','unavailable') NOT NULL DEFAULT 'available',
+  `created_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `resource_allocations`
 --
 
@@ -317,6 +333,13 @@ ALTER TABLE `rescue_missions`
   ADD KEY `idx_mission_team_status` (`team_user_id`,`mission_status`);
 
 --
+-- Indexes for table `rescue_teams`
+--
+ALTER TABLE `rescue_teams`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_team_creator` (`created_by`);
+
+--
 -- Indexes for table `resource_allocations`
 --
 ALTER TABLE `resource_allocations`
@@ -404,6 +427,12 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `rescue_missions`
 --
 ALTER TABLE `rescue_missions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `rescue_teams`
+--
+ALTER TABLE `rescue_teams`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
