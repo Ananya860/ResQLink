@@ -264,7 +264,7 @@ function missionColor($s) {
     --accent-lt:  #ffebee;
     --sidebar-w:  265px;
     --topbar-h:   66px;
-    --bg:         #ffc0cb;
+    --bg:         #f8fafc;
     --white:      #ffffff;
     --text:       #1a1a2e;
     --muted:      #6b7280;
@@ -585,6 +585,9 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
     </nav>
 
     <div class="sidebar-footer">
+        <a href="#" class="nav-link">
+            <i class="fa-solid fa-headset"></i> Help & Support
+        </a>
         <a href="logout.php" class="nav-link logout">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
         </a>
